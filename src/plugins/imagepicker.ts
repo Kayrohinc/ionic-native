@@ -1,4 +1,4 @@
-import { Cordova, Plugin } from './plugin';
+import { Cordova, Plugin} from './plugin';
 
 
 export interface ImagePickerOptions {
@@ -51,9 +51,22 @@ export class ImagePicker {
    * @return Returns a Promise that resolves the image file URI
    * otherwise rejects with an error.
    */
+
   @Cordova({
     callbackOrder: 'reverse'
   })
   static getPictures(options: ImagePickerOptions): Promise<any> { return; }
 
+  @Cordova({
+    callbackOrder: 'reverse'
+  })
+  static hasReadPermission():Promise<any> 
+  {
+return;
+  }
+
+@Cordova({   callbackOrder: 'reverse'})
+  static requestReadPermission():void
+  {
+  }
 }
