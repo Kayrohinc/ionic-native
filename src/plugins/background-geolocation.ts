@@ -1,9 +1,6 @@
-import { Cordova, Plugin } from './plugin';
-import { Observable } from 'rxjs/Observable';
-
+import {Cordova, Plugin} from './plugin';
 
 declare var window;
-
 
 export interface Location {
 
@@ -106,6 +103,22 @@ export interface Config {
    */
   stopOnTerminate?: boolean;
 
+  /** 
+   * ANDROID ONLY 
+   * Start background service on device boot. 
+   *
+   * Defaults to false 
+   */
+  startOnBoot?: boolean;
+
+  /** 
+   * ANDROID ONLY 
+   * If false location service will not be started in foreground and no notification will be shown.
+   *
+   * Defaults to true 
+   */
+  startForeground?: boolean;
+
   /**
    * ANDROID, WP8 ONLY
    * The minimum time interval between location updates in seconds.
@@ -133,12 +146,19 @@ export interface Config {
    */
   notificationIconColor?: string;
 
-  /**
-   * ANDROID ONLY
-   * The filename of a custom notification icon. See android quirks.
-   * NOTE: Only available for API Level >=21.
+  /** 
+   * ANDROID ONLY 
+   * The filename of a custom notification icon. See android quirks. 
+   * NOTE: Only available for API Level >=21. 
    */
-  notificationIcon?: string;
+  notificationIconLarge?: string;
+
+  /** 
+   * ANDROID ONLY 
+   * The filename of a custom notification icon. See android quirks. 
+   * NOTE: Only available for API Level >=21. 
+   */
+  notificationIconSmall?: string;
 
   /**
    * ANDROID ONLY
@@ -154,6 +174,52 @@ export interface Config {
    */
   activityType?: string;
 
+  /** 
+   * IOS ONLY 
+   * Pauses location updates when app is paused 
+   *
+   * Defaults to true 
+   */
+  pauseLocationUpdates?: boolean;
+
+  /** 
+   * Server url where to send HTTP POST with recorded locations 
+   * @see https://github.com/mauron85/cordova-plugin-background-geolocation#http-locations-posting 
+   */
+  url?: string;
+
+  /** 
+   * Server url where to send fail to post locations 
+   * @see https://github.com/mauron85/cordova-plugin-background-geolocation#http-locations-posting 
+   */
+  syncUrl?: string;
+
+  /**
+   * Specifies how many previously failed locations will be sent to server at once 
+   *
+   * Defaults to 100 
+   */
+  syncThreshold?: number;
+
+  /** 
+   * Optional HTTP headers sent along in HTTP request 
+   */
+  httpHeaders?: any;
+
+  /**
+   * IOS ONLY 
+   * Switch to less accurate significant changes and region monitory when in background (default)
+   *
+   * Defaults to 100 
+   */
+  saveBatteryOnBackground?: boolean;
+
+  /** 
+   * Limit maximum number of locations stored into db 
+   *
+   * Defaults to 10000 
+   */
+  maxLocations?: number;
 }
 
 /**
@@ -170,7 +236,8 @@ export interface Config {
  *
  * // When device is ready :
  * platform.ready().then(() => {
- *
+ *     // IMPORTANT: BackgroundGeolocation must be called within app.ts and or before Geolocation. Otherwise the platform will not ask you for background tracking permission. 
+ * 
  *     // BackgroundGeolocation is highly configurable. See platform specific configuration options
  *     let config = {
  *             desiredAccuracy: 10,
@@ -190,13 +257,11 @@ export interface Config {
 
  *      }, (error) => {
  *        console.log('BackgroundGeolocation error');
- *      }, {
- *       //options
- *     });
+ *      }, config);
  *
  *     // Turn ON the background-geolocation system.  The user will be tracked whenever they suspend the app.
  *     BackgroundGeolocation.start();
- * }
+ * })
  *
  * // If you wish to turn OFF background-tracking, call the #stop method.
  * BackgroundGeolocation.stop();
@@ -211,21 +276,69 @@ export interface Config {
 })
 export class BackgroundGeolocation {
 
+  /** 
+   * Set location service provider @see https://github.com/mauron85/cordova-plugin-background-geolocation/wiki/Android-providers 
+   *
+   * Possible values:
+   *  ANDROID_DISTANCE_FILTER_PROVIDER: 0, 
+   *  ANDROID_ACTIVITY_PROVIDER: 1 
+   *
+   * @enum {number} 
+   */
+  static LocationProvider: any = {
+    ANDROID_DISTANCE_FILTER_PROVIDER: 0,
+    ANDROID_ACTIVITY_PROVIDER: 1
+  };
+
+  /**
+   * Desired accuracy in meters. Possible values [0, 10, 100, 1000]. 
+   * The lower the number, the more power devoted to GeoLocation resulting in higher accuracy readings. 
+   * 1000 results in lowest power drain and least accurate readings. 
+   *
+   * Possible values:
+   *  HIGH: 0 
+   *  MEDIUM: 10 
+   *  LOW: 100 
+   *  PASSIVE: 1000
+   *
+   * enum {number} 
+   */
+  static Accuracy: any = {
+    HIGH: 0,
+    MEDIUM: 10,
+    LOW: 100,
+    PASSIVE: 1000
+  };
+
+  /** 
+   * Used in the switchMode function 
+   *
+   * Possible values:
+   *  BACKGROUND: 0
+   *  FOREGROUND: 1 
+   *
+   * @enum {number} 
+   */
+  static Mode: any = {
+    BACKGROUND: 0,
+    FOREGROUND: 1
+  };
+
   /**
    * Configure the plugin.
-   * Success callback will be called with one argument - Location object, which tries to mimic w3c Coordinates interface.
+   *
+   * @param {Function} Success callback will be called when background location is determined.
+   * @param {Function} Fail callback to be executed every time a geolocation error occurs.
+   * @param {Object} An object of type Config
+   *
+   * @return Location object, which tries to mimic w3c Coordinates interface.
    * See http://dev.w3.org/geo/api/spec-source.html#coordinates_interface
    * Callback to be executed every time a geolocation is recorded in the background.
-   *
-   * Fail callback to be executed every time a geolocation error occurs.
-   *
-   * Options a json object of type Config
    */
   @Cordova({
     sync: true
   })
   static configure(callback: Function, errorCallback: Function, options: Config): void { return; }
-
 
   /**
    * Turn ON the background-geolocation system.
@@ -234,13 +347,11 @@ export class BackgroundGeolocation {
   @Cordova()
   static start(): Promise<any> { return; }
 
-
   /**
    * Turn OFF background-tracking
    */
   @Cordova()
   static stop(): Promise<any> { return; }
-
 
   /**
    * Inform the native plugin that you're finished, the background-task may be completed
@@ -249,14 +360,12 @@ export class BackgroundGeolocation {
   @Cordova()
   static finish() { }
 
-
   /**
    * Force the plugin to enter "moving" or "stationary" state
    * NOTE: IOS, WP only
    */
   @Cordova()
   static changePace(isMoving: boolean) { }
-
 
   /**
    * Setup configuration
@@ -290,10 +399,16 @@ export class BackgroundGeolocation {
   static isLocationEnabled(): Promise<number> { return; }
 
   /**
+   * Display app settings to change permissions
+   */
+  @Cordova({sync: true})
+  static showAppSettings(): void { }
+
+  /**
    * Display device location settings
    */
-  @Cordova()
-  static showLocationSettings() { }
+  @Cordova({sync: true})
+  static showLocationSettings(): void { }
 
   /**
    * Method can be used to detect user changes in location services settings.
@@ -323,6 +438,12 @@ export class BackgroundGeolocation {
   @Cordova()
   static getLocations(): Promise<any> { return; }
 
+  /** 
+   * Method will return locations, which has not been yet posted to server. NOTE: Locations does contain locationId. 
+   */
+  @Cordova()
+  static getValidLocations(): Promise<any> { return; }
+
   /**
    * Delete stored location by given locationId.
    * NOTE: ANDROID only
@@ -337,4 +458,29 @@ export class BackgroundGeolocation {
   @Cordova()
   static deleteAllLocations(): Promise<any> { return; }
 
+  /**
+   * Normally plugin will handle switching between BACKGROUND and FOREGROUND mode itself.
+   * Calling switchMode you can override plugin behavior and force plugin to switch into other mode.
+   *
+   * In FOREGROUND mode plugin uses iOS local manager to receive locations and behavior is affected by option.desiredAccuracy and option.distanceFilter.
+   * In BACKGROUND mode plugin uses significant changes and region monitoring to receive locations and uses option.stationaryRadius only. 
+   *
+   * BackgroundGeolocation.Mode.FOREGROUND
+   * BackgroundGeolocation.Mode.BACKGROUND 
+   *
+   * NOTE: iOS only
+   *
+   * @param {number} See above. 
+   */
+  @Cordova()
+  static switchMode(modeId: number): Promise<any> { return; }
+
+  /** 
+   * Return all logged events. Useful for plugin debugging. Parameter limit limits number of returned entries. 
+   * @see https://github.com/mauron85/cordova-plugin-background-geolocation/tree/v2.2.1#debugging for more information. 
+   *
+   * @param {number} Limits the number of entries 
+   */
+  @Cordova()
+  static getLogEntries(limit: number): Promise<any> { return; }
 }

@@ -8,6 +8,13 @@ declare var window;
  * @description
  * @usage
  * For usage information please refer to the plugin's Github repo.
+ *
+ * ```typescript
+ * import {WebIntent} from 'ionic-native';
+ *
+ * WebIntent.startActivity(options).then(onSuccess, onError);
+ *
+ * ```
  */
 @Plugin({
   plugin: 'https://github.com/Initsogar/cordova-webintent.git',
@@ -28,7 +35,7 @@ export class WebIntent {
   }
 
   @Cordova()
-  static startActivity(options: { action: any, url: string }): Promise<any> { return; }
+  static startActivity(options: { action: any, url: string, type?: string }): Promise<any> { return; }
 
   @Cordova()
   static hasExtra(extra: any): Promise<any> { return; }

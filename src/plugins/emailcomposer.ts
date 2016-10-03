@@ -7,9 +7,10 @@ declare var cordova: any;
  * @name Email Composer
  * @description
  *
- * Requires Cordova plugin: cordova-plugin-email-composer. For more info, please see the [Email Composer plugin docs](https://github.com/katzer/cordova-plugin-email-composer).
+ * Requires Cordova plugin: cordova-plugin-email-composer. For more info, please see the [Email Composer plugin docs](https://github.com/hypery2k/cordova-email-plugin).
  *
  * DISCLAIMER: This plugin is experiencing issues with the latest versions of Cordova. Use at your own risk. Functionality is not guaranteed. Please stay tuned for a more stable version.
+ * A good alternative to this plugin is the social sharing plugin.
  *
  * @usage
  * ```typescript
@@ -43,10 +44,10 @@ declare var cordova: any;
  * ```
  */
 @Plugin({
-  plugin: 'cordova-plugin-email-composer',
+  plugin: 'cordova-plugin-email',
   pluginRef: 'cordova.plugins.email',
-  repo: 'https://github.com/katzer/cordova-plugin-email-composer.git',
-  platforms: ['Android', 'iOS', 'Windows Phone 8']
+  repo: 'https://github.com/hypery2k/cordova-email-plugin',
+  platforms: ['Android', 'iOS']
 })
 export class EmailComposer {
 
@@ -58,8 +59,23 @@ export class EmailComposer {
    */
   static isAvailable(app?: string): Promise<any> {
     return new Promise<boolean>((resolve, reject) => {
-      if (app) cordova.plugins.email.isAvailable(app, (isAvailable) => { if (isAvailable) resolve(); else reject(); });
-      else cordova.plugins.email.isAvailable((isAvailable) => { if (isAvailable) resolve(); else reject(); });
+      if (app) {
+        cordova.plugins.email.isAvailable(app, (isAvailable) => {
+          if (isAvailable) {
+            resolve();
+          } else {
+            reject();
+          }
+        });
+      } else {
+        cordova.plugins.email.isAvailable((isAvailable) => {
+          if (isAvailable) {
+            resolve();
+          } else {
+            reject();
+          }
+        });
+      }
     });
   }
 

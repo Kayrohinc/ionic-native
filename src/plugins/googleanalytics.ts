@@ -31,10 +31,11 @@ export class GoogleAnalytics {
    * Track a screen
    * https://developers.google.com/analytics/devguides/collection/analyticsjs/screens
    *
-   * @param {string}  title   Screen title
+   * @param {string}  title         Screen title
+   * @param {string}  campaignUrl   Campaign url for measuring referrals
    */
   @Cordova()
-  static trackView(title: string): Promise<any> { return; }
+  static trackView(title: string, campaignUrl?: string): Promise<any> { return; }
 
   /**
    * Track an event
@@ -106,13 +107,34 @@ export class GoogleAnalytics {
    * https://developers.google.com/analytics/devguides/collection/analyticsjs/user-id
    * @param {string}  id
    */
-  @Cordova()
-  static setUserId(id: string): Promise<any> { return; }
+  @Cordova({sync: true})
+  static setUserId(id: string): void { }
+
+  /**
+   * Sets the app version
+   * @param appVersion
+   */
+  @Cordova({sync: true})
+  static setAppVersion(appVersion: string): void { }
+
+  /**
+   * Set a anonymize Ip address
+   * @param anonymize
+   */
+  @Cordova({sync: true})
+  static setAnonymizeIp(anonymize: boolean): void { }
+
+  /**
+   * Enabling Advertising Features in Google Analytics allows you to take advantage of Remarketing, Demographics & Interests reports, and more
+   * @param allow
+   */
+  @Cordova({sync: true})
+  static setAllowIDFACollection(allow: boolean): void { }
 
   /**
    * Enable verbose logging
    */
-  @Cordova()
+  @Cordova({sync: true})
   static debugMode(): Promise<any> { return; }
 
   /**
